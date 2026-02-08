@@ -1,10 +1,8 @@
-dofile(ModPath .. "lua/setup.lua")
-
 --Add extra profiles
---Number of profiles is fixed at total_profiles
---So if the number of profiles in the base game is changed, the added profiles will not be lost
+--skilltreetweakdata already updated EPSS._session_profiles if needed
 function MultiProfileManager:_check_amount()
-	local wanted_amount = fragProfiles._settings.total_profiles--Only this line changed
+	--Only wanted_amount changed
+	local wanted_amount = EPSS._session_profiles
 	if not self:current_profile() then
 		self:save_current()
 	end
@@ -21,3 +19,14 @@ function MultiProfileManager:_check_amount()
 		self._global._current_profile = prev_current
 	end
 end
+
+--Automatically equip corresponding skill set
+Hooks:PreHook(MultiProfileManager, "load_current", "EPSS-PreHook-MultiProfileManager:load_current", function(self)
+	if EPSS.settings.autobind_skills then
+		local index = self._global._current_profile
+		local switch_data = managers.skilltree and managers.skilltree._global.skill_switches[index]
+		if switch_data and switch_data.unlocked and not managers.skilltree:is_skill_switch_suspended(switch_data) then
+			self._global._profiles[index].skillset = index
+		end
+	end
+end)

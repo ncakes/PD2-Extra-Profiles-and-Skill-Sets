@@ -1,193 +1,191 @@
---Don't do setup twice
-if _G.fragProfiles then
-	return
-end
+if _G.EPSS then return end
 
-_G.fragProfiles = _G.fragProfiles or {}
-fragProfiles._mod_path = ModPath
-fragProfiles._save_path = SavePath
-fragProfiles._save_name = "extraprofiles_settings.txt"
-fragProfiles._min_profiles = 15--Number of profiles in base game
-fragProfiles._default_profiles = 30
-fragProfiles._settings = {
-	total_profiles = fragProfiles._default_profiles--Total number of profiles (includes base game profiles)
+_G.EPSS = {}
+EPSS.meta = {
+	mod_path = ModPath,
+	save_path = SavePath,
+	menu_id = "epss_options_menu",
+	menu_file = ModPath.."menu/options.json",
+	save_file = SavePath.."extraprofiles_settings.txt",
 }
---For confirmation, don't save settings automatically
-fragProfiles._deferred_settings = {}
 
---JSON encode helper
-function fragProfiles:json_encode(tab, path)
+function EPSS:save_json(path, data)
 	local file = io.open(path, "w+")
-	if file then
-		file:write(json.encode(tab))
-		file:close()
-	end
+	file:write(json.encode(data))
+	file:close()
 end
 
---JSON decode helper
-function fragProfiles:json_decode(tab, path)
+function EPSS:load_json(path)
+	local data
 	local file = io.open(path, "r")
 	if file then
-		for k, v in pairs(json.decode(file:read("*all")) or {}) do
-			tab[k] = v
-		end
+		data = json.decode(file:read("*all"))
 		file:close()
+	end
+	return data
+end
+
+function EPSS:save_settings()
+	self:save_json(self.meta.save_file, self.settings)
+end
+
+function EPSS:load_settings()
+	local data = self:load_json(self.meta.save_file) or {}
+	for k, _ in pairs(self.settings) do
+		if data[k] ~= nil then
+			self.settings[k] = data[k]
+		end
 	end
 end
 
---Save settings function
-function fragProfiles:save_settings()
-	local path = self._save_path..self._save_name
-	self:json_encode(self._settings, path)
-end
-
---Load settings function
-function fragProfiles:load_settings()
-	local path = self._save_path..self._save_name
-	self:json_decode(self._settings, path)
-end
-
---Validate total number of profiles in case minimum is changed
-function fragProfiles:validate_total_profiles()
-	if self._settings.total_profiles < self._min_profiles then
-		self._settings.total_profiles = self._min_profiles
+EPSS.settings = {
+	total_profiles = 45,
+	total_profiles_deferred = 45,
+	autobind_skills = true,
+	allow_fewer = false,
+}
+EPSS:load_settings()
+--Legacy users don't have total_profiles_deferred, make sure it's set.
+EPSS.settings.total_profiles_deferred = EPSS.settings.total_profiles
+--Cache session profiles. Make sure it's higher than base later.
+EPSS._session_profiles = EPSS.settings.total_profiles
+--Base game number of skill sets, get from skilltreetweakdata
+--EPSS._base_num_profiles = ...
+function EPSS:update_session_settings(base_num_profiles)
+	self._base_num_profiles = base_num_profiles
+	if self._session_profiles < base_num_profiles and not self.settings.allow_fewer then
+		self._session_profiles = base_num_profiles
+		self.settings.total_profiles = base_num_profiles
+		self.settings.total_profiles_deferred = base_num_profiles
 		self:save_settings()
 	end
 end
 
---Load settings
-local save_exists = io.open(fragProfiles._save_path..fragProfiles._save_name, "r")
-if save_exists ~= nil then
-	save_exists:close()
-	fragProfiles:load_settings()
-	fragProfiles:validate_total_profiles()
-else
-	fragProfiles:save_settings()
+Hooks:Add("LocalizationManagerPostInit", "EPSS-Hooks-LocalizationManagerPostInit", function(loc)
+	loc:load_localization_file(EPSS.meta.mod_path.."localizations/english.json")
+end)
+
+Hooks:Add("MenuManagerInitialize", "EPSS-Hooks-MenuManagerInitialize", function(menu_manager)
+	local Mod = EPSS
+
+	MenuCallbackHandler.epss_callback_slider_discrete = function(self, item)
+		Mod.settings[item:name()] = math.floor(item:value()+0.5)
+	end
+
+	MenuCallbackHandler.epss_callback_toggle = function(self, item)
+		Mod.settings[item:name()] = item:value() == "on"
+		Mod:update_menu_options()
+	end
+
+	MenuCallbackHandler.epss_callback_button = function(self, item)
+		Mod[item:name()](Mod)
+	end
+
+	MenuCallbackHandler.epss_callback_save = function(self, item)
+		Mod:back_callback()
+	end
+
+	MenuHelper:LoadFromJsonFile(Mod.meta.menu_file, Mod, Mod.settings)
+end)
+
+function EPSS:back_callback()
+	self:discard_deferred_profiles()
+	self:save_settings()
 end
 
---Menu hooks
-Hooks:Add("LocalizationManagerPostInit", "fragProfiles_hook_LocalizationManagerPostInit", function(loc)
-	loc:load_localization_file(fragProfiles._mod_path.."localizations/english.txt")
-	--Default names for skill sets
-	--Unused strings when i < num. of skill sets in base game
-	--But there is no harm in adding them and it simplifies things since the number of skill sets could change in the future.
-	for i=1,fragProfiles._settings.total_profiles do
-		local id = "fragProfiles_set_"..tostring(i)
-		local str = "Set #"..tostring(i)
-		loc:add_localized_strings( {[id] = str} )
-	end
-end)
-
-Hooks:Add("MenuManagerInitialize", "fragProfiles_hook_MenuManagerInitialize", function(menu_manager)
-	MenuCallbackHandler.fragProfiles_callback_slider_discrete = function(self, item)
-		fragProfiles._deferred_settings[item:name()] = math.floor(item:value()+0.5)
-	end
-
-	MenuCallbackHandler.fragProfiles_callback_button = function(self, item)
-		if item:name() == "commit_settings" then
-			fragProfiles:commit_settings()
+function EPSS:get_menu_item(setting_id)
+	local menu = MenuHelper:GetMenu(self.meta.menu_id)
+	for _, item in pairs(menu._items) do
+		local name = item._parameters and item._parameters.name
+		if name == setting_id then
+			return item
 		end
 	end
+end
 
-	MenuHelper:LoadFromJsonFile(fragProfiles._mod_path.."menu/options.txt", fragProfiles, fragProfiles._settings)
-end)
+function EPSS:update_menu_options()
+	local item = self:get_menu_item("total_profiles_deferred")
+	if not self.settings.allow_fewer then
+		item._min = self._base_num_profiles
+		if item._value < item._min then
+			item._value = item._min
+			self.settings.total_profiles_deferred = item._min
+			self:save_deferred_profiles()
+		end
+	else
+		item._min = 1
+	end
+	item:dirty_callback()
+end
 
 --Commit settings button
-function fragProfiles:commit_settings()
-	--Get current settings from file (in case we saved already but haven't restarted yet)
-	local actual_settings = {}
-	local path = self._save_path..self._save_name
-	self:json_decode(actual_settings, path)
-
-	--Get delta
-	local num_old_profiles = actual_settings.total_profiles or self._settings.total_profiles
-	local num_new_profiles = self._deferred_settings.total_profiles or self._settings.total_profiles
-	local delta = num_new_profiles - num_old_profiles
-
-	--Build menu message
-	local title = managers.localization:text("fragProfiles_dialog_title")
-	local message = ""
+function EPSS:commit_settings()
+	local new_num = self.settings.total_profiles_deferred
+	local old_num = self.settings.total_profiles
+	local delta = new_num - old_num
 
 	if delta == 0 then
-		--Number of profiles has not been changed.
-		message = managers.localization:text("fragProfiles_dialog_unchanged")
-		self:ok_menu(title, message, false, false)
+		local menu_title = managers.localization:text("epss_dialog_title")
+		local menu_message = managers.localization:text("epss_dialog_unchanged")
+		local menu_options = {{text = managers.localization:text("dialog_continue"), is_cancel_button = true}}
+		QuickMenu:new(menu_title, menu_message, menu_options, true)
 		return
-	else
-		--Print number of profiles
-		local macros = {
-			profile_chosen = num_new_profiles,
-			profile_current = num_old_profiles
-		}
-		message = message..managers.localization:text("fragProfiles_dialog_number_profiles", macros)
-
-		--Inform which profiles will be added/removed
-		if delta == 1 or delta == -1 then
-			local macros = {
-				profile_single = math.min(num_old_profiles + 1, num_new_profiles + 1),
-				profile_operation = delta > 0 and "added" or "removed"
-			}
-			message = message.."\n\n"..managers.localization:text("fragProfiles_dialog_add_remove_single", macros)
-		else
-			local macros = {
-				profile_min = math.min(num_old_profiles + 1, num_new_profiles + 1),
-				profile_max = math.max(num_old_profiles, num_new_profiles),
-				profile_operation = delta > 0 and "added" or "removed"
-			}
-			message = message.."\n\n"..managers.localization:text("fragProfiles_dialog_add_remove_multiple", macros)
-		end
-
-		--Warn if profiles will be removed
-		if delta < 0 then
-			message = message.."\n\n"..managers.localization:text("fragProfiles_dialog_warn_remove")
-		end
-
-		--Ask to continue
-		message = message.."\n\n"..managers.localization:text("fragProfiles_dialog_ask_continue")
 	end
 
-	--Show menu
-	local options = {
-		[1] = {
-			text = managers.localization:text("dialog_yes"),
-			callback = callback(self, self, "save_deferred_settings")
+	local menu_title = managers.localization:text("epss_dialog_title")
+	local menu_message = managers.localization:text("epss_dialog_number_profiles", {new_num=new_num, old_num=old_num})
+
+	local adding = delta > 0
+	if math.abs(delta) == 1 then
+		local macros = {
+			profile_num = math.max(old_num, new_num),
+			operation = delta > 0 and "added" or "removed",
+		}
+		menu_message = menu_message.."\n\n"..managers.localization:text("epss_dialog_add_remove_single", macros)
+	else
+		local macros = {
+			profile_min = math.min(old_num, new_num) + 1,
+			profile_max = math.max(old_num, new_num),
+			operation = delta > 0 and "added" or "removed",
+		}
+		menu_message = menu_message.."\n\n"..managers.localization:text("epss_dialog_add_remove_multiple", macros)
+	end
+
+	menu_message = menu_message.."\n\n"..managers.localization:text("epss_dialog_ask_continue")
+
+	local menu_options = {
+		{
+			text = managers.localization:text("dialog_continue"),
+			callback = function()
+				self:save_deferred_profiles()
+			end,
 		},
-		[2] = {
-			text = managers.localization:text("dialog_no"),
-			is_cancel_button = true
+		{
+			text = managers.localization:text("dialog_cancel"),
+			callback = function()
+				self:discard_deferred_profiles()
+			end,
+			is_focused_button = true,
 		}
 	}
-	local menu = QuickMenu:new(title, message, options)
-	menu:Show()
+
+	QuickMenu:new(menu_title, menu_message, menu_options, true)
 end
 
---Write deferred settings
-function fragProfiles:save_deferred_settings()
-	local path = self._save_path..self._save_name
-	self:json_encode(self._deferred_settings, path)
-	self:ok_menu("fragProfiles_dialog_title", "fragProfiles_dialog_saved", false, true)
+--Save and show message
+function EPSS:save_deferred_profiles()
+	self.settings.total_profiles = self.settings.total_profiles_deferred
+	self:save_settings()
+	local menu_title = managers.localization:text("epss_dialog_title")
+	local menu_message = managers.localization:text("epss_dialog_saved")
+	local menu_options = {{text = managers.localization:text("dialog_continue"), is_cancel_button = true}}
+	QuickMenu:new(menu_title, menu_message, menu_options, true)
 end
 
---Shortcut for single-option menu
-function fragProfiles:ok_menu(title, desc, callback, localize)
-	local menu_title = not localize and title or managers.localization:text(title)
-	local menu_message = not localize and desc or managers.localization:text(desc)
-	local menu_options = {}
-	if not callback then
-		menu_options = {
-			[1] = {
-				text = managers.localization:text("dialog_ok"),
-				is_cancel_button = true
-			}
-		}
-	else
-		menu_options = {
-			[1] = {
-				text = managers.localization:text("dialog_ok"),
-				callback = callback
-			}
-		}
-	end
-	local menu = QuickMenu:new(menu_title, menu_message, menu_options)
-	menu:Show()
+--Discard and update UI
+function EPSS:discard_deferred_profiles()
+	self.settings.total_profiles_deferred = self.settings.total_profiles
+	local item = self:get_menu_item("total_profiles_deferred")
+	item._value = self.settings.total_profiles_deferred
+	item:dirty_callback()
 end
