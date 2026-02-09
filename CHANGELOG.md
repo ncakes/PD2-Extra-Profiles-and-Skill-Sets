@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.1
+
+*2026-02-09 - Update 242.2*
+
+- When autobind skill sets is enabled, manually switching skill sets is blocked unless the skill set corresponding to the profile is suspended.
+- Fixed an issue where autobind skill sets would not equip the corresponding perk deck.
+
 ## v2.0
 
 *2026-02-08 - Update 242.2*

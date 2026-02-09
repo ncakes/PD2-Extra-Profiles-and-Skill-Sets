@@ -10,6 +10,7 @@
 	"epss_allow_fewer_title": "Allow fewer profiles",
 	"epss_allow_fewer_desc": "Reduce the number of profiles and skill sets to below what is available in the base game.",
 	"epss_dialog_title": "Extra Profiles and Skill Sets",
+	"epss_dialog_autobind": "Autobind skill sets is active. Available skill sets are bound to the corresponding profile and cannot be changed.\n\nDisable autobind in the options menu to reassign skill sets manually.",
 	"epss_dialog_unchanged": "Number of profiles unchanged.",
 	"epss_dialog_number_profiles": "You have selected $new_num profiles. You currently have $old_num profiles.",
 	"epss_dialog_add_remove_single": "Profile #$profile_num will be $operation.",

@@ -24,9 +24,16 @@ end
 Hooks:PreHook(MultiProfileManager, "load_current", "EPSS-PreHook-MultiProfileManager:load_current", function(self)
 	if EPSS.settings.autobind_skills then
 		local index = self._global._current_profile
-		local switch_data = managers.skilltree and managers.skilltree._global.skill_switches[index]
-		if switch_data and switch_data.unlocked and not managers.skilltree:is_skill_switch_suspended(switch_data) then
-			self._global._profiles[index].skillset = index
+		if self._global._profiles[index].skillset ~= index then
+			local switch_data = managers.skilltree and managers.skilltree._global.skill_switches[index]
+			if switch_data and switch_data.unlocked and not managers.skilltree:is_skill_switch_suspended(switch_data) then
+				self._global._profiles[index].skillset = index
+				self._global._profiles[index].perk_deck = Application:digest_value(switch_data.specialization, false)
+			end
 		end
 	end
+end)
+
+Hooks:PostHook(MultiProfileManager, "load", "EPSS-PostHook-MultiProfileManager:load", function(self)
+	self:load_current()
 end)
