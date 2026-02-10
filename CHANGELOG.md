@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.2
+
+*2026-02-10 - Update 242.2*
+
+- Added an extra check to prevent a possible crash.
+
 ## v2.0.1
 
 *2026-02-09 - Update 242.2*
