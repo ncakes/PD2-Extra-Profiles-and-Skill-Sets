@@ -17,7 +17,7 @@ end)
 --Not allowed to switch skill sets if not suspended
 local orig_MenuCallbackHandler_set_active_skill_switch = MenuCallbackHandler.set_active_skill_switch
 function MenuCallbackHandler:set_active_skill_switch(item)
-	if EPSS.settings.autobind_skills then
+	if EPSS.settings.autobind_skills_2 then
 		local skill_idx = item:parameters().name
 		local profile_idx = managers.multi_profile and managers.multi_profile._global._current_profile
 		if profile_idx and profile_idx ~= skill_idx then
@@ -40,7 +40,7 @@ end
 local orig_MenuCallbackHandler_unsuspend_skill_switch_dialog_yes = MenuCallbackHandler.unsuspend_skill_switch_dialog_yes
 function MenuCallbackHandler:unsuspend_skill_switch_dialog_yes(skill_switch)
 	orig_MenuCallbackHandler_unsuspend_skill_switch_dialog_yes(self, skill_switch)
-	if EPSS.settings.autobind_skills then
+	if EPSS.settings.autobind_skills_2 then
 		local profile_idx = managers.multi_profile and managers.multi_profile._global._current_profile
 		if profile_idx and profile_idx == skill_switch then
 			managers.skilltree:switch_skills(skill_switch)

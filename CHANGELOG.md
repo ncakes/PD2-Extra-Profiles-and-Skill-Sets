@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.3
+
+*2026-02-11 - Update 242.2*
+
+- Fixed an issue where autobind was activated for legacy users. Sorry to anyone who was affected. Autobind has now been disabled by default for everyone and has to be manually re-enabled.
+
 ## v2.0.2
 
 *2026-02-10 - Update 242.2*

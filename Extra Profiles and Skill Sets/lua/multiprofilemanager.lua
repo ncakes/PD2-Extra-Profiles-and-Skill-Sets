@@ -22,7 +22,7 @@ end
 
 --Automatically equip corresponding skill set
 Hooks:PreHook(MultiProfileManager, "load_current", "EPSS-PreHook-MultiProfileManager:load_current", function(self)
-	if EPSS.settings.autobind_skills then
+	if EPSS.settings.autobind_skills_2 then
 		local index = self._global._current_profile
 		if self._global._profiles[index].skillset ~= index then
 			local switch_data = managers.skilltree and managers.skilltree._global.skill_switches[index]
@@ -35,5 +35,7 @@ Hooks:PreHook(MultiProfileManager, "load_current", "EPSS-PreHook-MultiProfileMan
 end)
 
 Hooks:PostHook(MultiProfileManager, "load", "EPSS-PostHook-MultiProfileManager:load", function(self)
-	self:load_current()
+	if EPSS.settings.autobind_skills_2 then
+		self:load_current()
+	end
 end)

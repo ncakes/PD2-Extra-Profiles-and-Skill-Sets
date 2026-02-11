@@ -41,7 +41,7 @@ end
 EPSS.settings = {
 	total_profiles = 45,
 	total_profiles_deferred = 45,
-	autobind_skills = true,
+	autobind_skills_2 = false,
 	allow_fewer = false,
 }
 EPSS:load_settings()
@@ -91,6 +91,9 @@ end)
 function EPSS:back_callback()
 	self:discard_deferred_profiles()
 	self:save_settings()
+	if self.settings.autobind_skills_2 and managers.multi_profile then
+		managers.multi_profile:load_current()
+	end
 end
 
 function EPSS:get_menu_item(setting_id)

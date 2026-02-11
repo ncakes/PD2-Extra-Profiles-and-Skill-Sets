@@ -2,11 +2,11 @@
 
 ## Overview
 
-This mod increases the number of profiles and skill sets to 45 (from 30 in the base game). All skill sets will be unlocked automatically (including base game ones). Main features:
+This mod increases the number of profiles and skill sets to 45 (from 30 in the base game). Main features:
 
 - **Choose Number of Profiles/Skill Sets:** The number of profiles and skill sets can be adjusted using a slider in the options menu (min. 30, max. 120). To prevent accidental profile wipes, changes are not saved automatically. You need to click the "Save" button after making changes. An option is also provided to reduce the number profiles and skill sets below than the base game value, allowing the slider to go all the way down to 1.
 - **Longer Profile Names:** Extends the maximum number of characters in a profile name to 30 (from 15 in the base game).
-- **Auto-Equip Skill Set:** An option is provided to automatically select the corresponding skill set when changing to a profile, e.g. switching to profile #3 will equip skill set #3.
+- **Auto-Equip Skill Set:** An option is provided to automatically select the corresponding skill set when changing to a profile, e.g. switching to profile #3 will equip skill set #3. All skill sets will be unlocked automatically if this option is enabled (including base game ones).
 
 WARNING: If you start the game without the mod, your extra profiles and skill sets will be deleted.
 

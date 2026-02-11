@@ -6,7 +6,7 @@
 	"epss_commit_settings_title": "Save",
 	"epss_commit_settings_desc": "Click to confirm changes to number of profiles, otherwise they will be discarded.",
 	"epss_autobind_skills_title": "Autobind Skill Sets",
-	"epss_autobind_skills_desc": "When switching to a profile, the corresponding skill set will be automatically equipped if available.",
+	"epss_autobind_skills_desc": "When switching to a profile, the corresponding skill set will be automatically equipped.\nAll skill sets will be unlocked on restart.",
 	"epss_allow_fewer_title": "Allow fewer profiles",
 	"epss_allow_fewer_desc": "Reduce the number of profiles and skill sets to below what is available in the base game.",
 	"epss_dialog_title": "Extra Profiles and Skill Sets",
