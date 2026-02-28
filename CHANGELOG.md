@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1
+
+*2026-02-28 - Update 243*
+
+- Moving profiles will also move corresponding skill set if auto-equip skill sets is active (thanks Bucus).
+
 ## v2.0.3
 
 *2026-02-11 - Update 242.2*
