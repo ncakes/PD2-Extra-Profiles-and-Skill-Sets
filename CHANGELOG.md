@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.0
+
+*2026-08-19 - Update 247.1*
+
+- Changes to any setting are only saved after clicking "Save Settings" button (previously only applied to number of profiles).
+- Added a restart prompt if a restart is needed to apply changes to settings.
+- Added an option to display the profile number before the profile name (off by default).
+- Fixes for auto-equipping skill sets.
+	- Fixed an issue where changes to the current profile were not saved (thanks PalkoVvodets, Jon8903247).
+	- Bugfix for moving profiles when there are suspended skill sets.
+	- When a suspended skill set becomes available again, it will be automatically bound to the correct profile.
+
 ## v2.1
 
 *2026-02-28 - Update 243*
